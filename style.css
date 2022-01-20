@@ -7,13 +7,19 @@ body {
     
 }
 
+.piece {
+    background-repeat: no-repeat;
+    height: 70px;
+    width: 70px;
+    background-position: center;
+}
 .container {
-    width: 500px;
-    height: 500px;
+    width: 700px;
+    height: 700px;
     display: flex;
     align-items: center;
     position: relative;
-    background-color: #F2DE98;
+    background-color: #DED3AF;
     border-radius: 6%;
     
 
@@ -29,7 +35,9 @@ body {
 
 }
 .tiles {
-    content-visibility: hidden;
+    content-visibility: visible;
+    height: 70px;
+    width: 70px;
 }
 
 .white_tile {
@@ -40,6 +48,7 @@ body {
     display: flex;
     justify-content: center; /* align horizontal */
     align-items: center;
+    line-height: 0%;
 
 }
 
@@ -51,6 +60,7 @@ body {
     justify-content: center; /* align horizontal */
     align-items: center;
     color: black;
+    line-height: 0%;
     
 }
 
