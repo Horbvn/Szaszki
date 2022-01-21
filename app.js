@@ -188,42 +188,61 @@ class King extends Piece {
     
 }
 
-const white_f_bishop = new Bishop("f1", "white");
-const white_c_bishop = new Bishop("c1", "white");
-const white_b_knight = new Knight("b1", "white");
-const white_g_knight = new Knight("g1", "white");
-const white_a_rook = new Rook("a1", "white");
-const white_h_rook = new Rook("h1", "white");
-const white_queen = new Queen("d1", "white");
-const white_king = new King("e1", "white");
-const white_a_pawn = new Pawn("a2", "white");
-const white_b_pawn = new Pawn("b2", "white");
-const white_c_pawn = new Pawn("c2", "white");
-const white_d_pawn = new Pawn("d2", "white");
-const white_e_pawn = new Pawn("e2", "white");
-const white_f_pawn = new Pawn("f2", "white");
-const white_g_pawn = new Pawn("g2", "white");
-const white_h_pawn = new Pawn("h2", "white");
+// const white_f_bishop = new Bishop("f1", "white");
+// const white_c_bishop = new Bishop("c1", "white");
+// const white_b_knight = new Knight("b1", "white");
+// const white_g_knight = new Knight("g1", "white");
+// const white_a_rook = new Rook("a1", "white");
+// const white_h_rook = new Rook("h1", "white");
+// const white_queen = new Queen("d1", "white");
+// const white_king = new King("e1", "white");
+// const white_a_pawn = new Pawn("a2", "white");
+// const white_b_pawn = new Pawn("b2", "white");
+// const white_c_pawn = new Pawn("c2", "white");
+// const white_d_pawn = new Pawn("d2", "white");
+// const white_e_pawn = new Pawn("e2", "white");
+// const white_f_pawn = new Pawn("f2", "white");
+// const white_g_pawn = new Pawn("g2", "white");
+// const white_h_pawn = new Pawn("h2", "white");
 
-const black_f_bishop = new Bishop("f8", "black");
-const black_c_bishop = new Bishop("c8", "black");
-const black_b_knight = new Knight("b8", "black");
-const black_g_knight = new Knight("g8", "black");
-const black_a_rook = new Rook("a8", "black");
-const black_h_rook = new Rook("h8", "black");
-const black_queen = new Queen("d8", "black");
-const black_king = new King("e8", "black");
-const black_a_pawn = new Pawn("a7", "black");
-const black_b_pawn = new Pawn("b7", "black");
-const black_c_pawn = new Pawn("c7", "black");
-const black_d_pawn = new Pawn("d7", "black");
-const black_e_pawn = new Pawn("e7", "black");
-const black_f_pawn = new Pawn("f7", "black");
-const black_g_pawn = new Pawn("g7", "black");
-const black_h_pawn = new Pawn("h7", "black");
+// const black_f_bishop = new Bishop("f8", "black");
+// const black_c_bishop = new Bishop("c8", "black");
+// const black_b_knight = new Knight("b8", "black");
+// const black_g_knight = new Knight("g8", "black");
+// const black_a_rook = new Rook("a8", "black");
+// const black_h_rook = new Rook("h8", "black");
+// const black_queen = new Queen("d8", "black");
+// const black_king = new King("e8", "black");
+// const black_a_pawn = new Pawn("a7", "black");
+// const black_b_pawn = new Pawn("b7", "black");
+// const black_c_pawn = new Pawn("c7", "black");
+// const black_d_pawn = new Pawn("d7", "black");
+// const black_e_pawn = new Pawn("e7", "black");
+// const black_f_pawn = new Pawn("f7", "black");
+// const black_g_pawn = new Pawn("g7", "black");
+// const black_h_pawn = new Pawn("h7", "black");
 
-
-
-
-
-
+let PIECES = {};
+const fillBoard = () => {
+    return ['black', 'white'].forEach(color => {
+        letters.forEach(letter => {
+            PIECES[`${color}_${letter}_pawn`] = new Pawn(`${letter}${color === 'black' ? '7' : '2'}`, color);
+        });
+    
+        const tileNumber = color === 'black' ? '8' : '1';
+        PIECES[`${color}_queen`] = new Queen(`d${tileNumber}`, color);
+        PIECES[`${color}_king`] = new King(`e${tileNumber}`, color);
+    
+        ['c', 'f'].forEach(letter => {
+            PIECES[`${color}_${letter}_bishop`] = new Bishop(`${letter}${tileNumber}`, color);
+        });
+        ['b', 'g'].forEach(letter => {
+            PIECES[`${color}_${letter}_knight`] = new Knight(`${letter}${tileNumber}`, color);
+        });
+        ['a', 'h'].forEach(letter => {
+            PIECES[`${color}_${letter}_rook`] = new Rook(`${letter}${tileNumber}`, color);
+        });
+    });
+}
+fillBoard();
+console.log(PIECES);
