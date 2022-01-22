@@ -13,6 +13,7 @@ body {
     width: 70px;
     background-position: center;
 }
+
 .container {
     width: 700px;
     height: 700px;
@@ -21,15 +22,13 @@ body {
     position: relative;
     background-color: #DED3AF;
     border-radius: 6%;
-    
-
 }
 
 .board {
     width: 80%;
     height: 80%;
     display: grid;
-    border: 1px solid #524513;
+    border: 1px solid #d5e0df;
     grid-template-columns: repeat(8,12.5%);
     overflow: visible;
 
@@ -38,6 +37,7 @@ body {
     content-visibility: visible;
     height: 70px;
     width: 70px;
+
 }
 
 .white_tile {
@@ -90,5 +90,10 @@ body {
     left: 0;
     text-align: center;
     font-family: Helvetica;
+}
+
+.highlighted {
+    background-color: #bfb48e;
+    border-radius: 15%;
 }
 

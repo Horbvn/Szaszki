@@ -62,6 +62,17 @@ function isTileOccupied(id) {
     return document.getElementById(id).hasChildNodes();
 }
 
+
+function switchId(id, value1, value2) {
+    return letters[dict[id[0]] + Number(value1)-1] + (Number(id[1]) + value2);
+}
+
+function highlightTiles(moves) {
+    moves.forEach(element => {
+        document.getElementById(element).classList.add("highlighted");
+    });
+}
+
 class Board {
     constructor() {
 
@@ -76,13 +87,20 @@ class Piece {
         this.initial_id = this.id;
         this.element = document.createElement("div");
         this.element.classList.add("piece");
-        this.element.setAttribute("color" ,this.color);
+        this.element.setAttribute("color", this.color);
         document.getElementById(this.id).appendChild(this.element);        
     }
 
     movePiece(id) {
         document.getElementById(id).appendChild(this.element);
         return this.id = id;
+    }
+
+    canCapture(id) {        
+        if (isTileOccupied(id) && (document.getElementById(id).childNodes[0].getAttribute("color") != this.color)) {
+            return true;
+        }
+        else return false;
     }
 }
 
@@ -94,51 +112,75 @@ class Pawn extends Piece {
     }
 
     canMoveForward() {
+        let candidates = [];
         let new_id;
-        switch (this.color) {
-            case "white":
-                new_id = this.id[0] + (Number(this.id[1])+1);
-                return (isTileOccupied(new_id) ? "can't" : new_id);
-        
-            case "black":
-                new_id = this.id[0] + (Number(this.id[1])-1);
-                return (isTileOccupied(new_id) ? "can't" : new_id);
-        }
-        
-    }
-
-    firstMove() {
-        let new_id;
-        switch (this.color) {
-            case "white":
-                new_id = this.id[0] + (Number(this.id[1])+2);
-                return (isTileOccupied(new_id) ? "can't" : new_id);        
-            case "black":
-                new_id = this.id[0] + (Number(this.id[1])-2);
-                return (isTileOccupied(new_id) ? "can't" : new_id);
-        }
-        
+        let index;
+        let counter = 1;
+        if (this.id[1] == 2 || this.id[1] == 7) counter = 2;
+        for (let i = counter; i >= 1; i--) {
+            switch (this.color) {
+                case "white":
+                    index = i;
+                    break;        
+                case "black":
+                    index = -i;
+                    break;
+            }
+            new_id = this.id[0] + (Number(this.id[1])+index);
+            if (!isTileOccupied(new_id)) candidates.push(new_id);    
+        } 
+        return candidates;        
     }
 
     attackMove() {
         let candidates = []
+        let temp_id;
         switch (this.color) {
-            case "white":                
-                candidates.push()        
+            case "white":
+                switch (this.id[0]) {
+                    case "a":
+                        temp_id = switchId(this.id, 1, 1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;               
+                    case "h":
+                        temp_id = switchId(this.id, -1, 1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;
+                    default:
+                        temp_id = switchId(this.id, 1, 1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = switchId(this.id, -1, 1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;
+                }               
+                return candidates;       
             case "black":
-                break;
+                switch (this.id[0]) {
+                    case "a":
+                        temp_id = switchId(this.id, 1, -1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;                
+                    case "h":
+                        temp_id = switchId(this.id, -1, -1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;                    
+                    default:
+                        temp_id = switchId(this.id, 1, -1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = switchId(this.id, -1, -1);
+                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        break;
+                }               
+                return candidates; 
+                
         }
     }
 
     getPossibleMoves() {
-        let moves = [];
-        //let example = ["a1", "b1"]
-        if (this.id[1] == 2 || this.id[1] == 7) {
-            moves.push(this.firstMove());
-        }
-        moves.push(this.canMoveForward());
-        //moves.push(...example);
-        return moves;
+        let candidates = [];
+        candidates.push(...this.canMoveForward());
+        candidates.push(...this.attackMove());
+        return candidates;
     }
     
 
