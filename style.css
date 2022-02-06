@@ -28,7 +28,6 @@ body {
     width: 80%;
     height: 80%;
     display: grid;
-    border: 1px solid #d5e0df;
     grid-template-columns: repeat(8,12.5%);
     overflow: visible;
 
@@ -38,12 +37,10 @@ body {
     height: 70px;
     width: 70px;
 
+
 }
 
 .white_tile {
-
-    max-width: 100%;
-    max-height: 100%;
     background-color: whitesmoke;  
     display: flex;
     justify-content: center; /* align horizontal */
@@ -53,8 +50,6 @@ body {
 }
 
 .black_tile {
-    max-width: 100%;
-    max-height: 100%;
     background-color: #CBDEDC;
     display: flex;
     justify-content: center; /* align horizontal */
@@ -88,12 +83,19 @@ body {
     align-items: center;
     top: 0;
     left: 0;
+    right: 0;
     text-align: center;
     font-family: Helvetica;
 }
 
 .highlighted {
-    background-color: #bfb48e;
-    border-radius: 15%;
+border-radius: 3%;
+box-shadow:     
+inset 0px 0px 8px 5px #bad654;
 }
 
+.focused {
+border-radius: 3%;
+box-shadow:     
+inset 0px 0px 8px 5px #bad654; 
+}

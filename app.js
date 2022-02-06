@@ -5,6 +5,7 @@ const numbersbox = document.querySelector(".numbersbox");
 
 let letters = [`a`,`b`,`c`,`d`,`e`,`f`,`g`,`h`];
 
+
 let dict = {
     "a": 1,
     "b": 2,
@@ -47,6 +48,26 @@ for (let i = 1; i <= 64; i++) {
     board.appendChild(tile);
 }
 
+const Pieces = {}
+function fillBoard() {
+    ['white','black'].forEach(color => {
+        letters.forEach(letter => {
+            Pieces[`${color}_${letter}_pawn`] = new Pawn(`${letter}${color ==='white' ? '2' : '7'}`, `${color}`);
+        });
+        ['a','h'].forEach(letter => {
+            Pieces[`${color}_${letter}_rook`] = new Rook(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+        });
+        ['b','g'].forEach(letter => {
+            Pieces[`${color}_${letter}_knight`] = new Knight(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+        });
+        ['c','f'].forEach(letter => {
+            Pieces[`${color}_${letter}_bishop`] = new Bishop(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+        });
+        Pieces[`${color}_king`] = new King(`e${color ==='white' ? '1' : '8'}`, `${color}`);
+        Pieces[`${color}_queen`] = new Queen(`d${color ==='white' ? '1' : '8'}`, `${color}`);
+    });
+    
+}
 
 function calcId(i) {
     if (i%8==0) {
@@ -67,9 +88,16 @@ function switchId(id, value1, value2) {
     return letters[dict[id[0]] + Number(value1)-1] + (Number(id[1]) + value2);
 }
 
+// dodac podswietlanie wybranej figury - class focused
 function highlightTiles(moves) {
     moves.forEach(element => {
         document.getElementById(element).classList.add("highlighted");
+    });
+}
+
+function removeHighlights(moves) {
+    moves.forEach(element => {
+        document.getElementById(element).classList.remove("highlighted");
     });
 }
 
@@ -88,7 +116,16 @@ class Piece {
         this.element = document.createElement("div");
         this.element.classList.add("piece");
         this.element.setAttribute("color", this.color);
-        document.getElementById(this.id).appendChild(this.element);        
+        this.element.setAttribute("id", this.id);
+        document.getElementById(this.id).appendChild(this.element);   
+        this.element.addEventListener("click", function() {
+            if (document.getElementById(this.id).classList.contains("highlighted")) {
+                removeHighlights([this.id]);
+            }
+            else {
+                highlightTiles([this.id]);
+            }
+        })     
     }
 
     movePiece(id) {
@@ -96,19 +133,20 @@ class Piece {
         return this.id = id;
     }
 
-    canCapture(id) {        
-        if (isTileOccupied(id) && (document.getElementById(id).childNodes[0].getAttribute("color") != this.color)) {
-            return true;
-        }
-        else return false;
+    canCapture(id) {     
+        return (
+            isTileOccupied(id)
+            && (document.getElementById(id).childNodes[0].getAttribute("color") != this.color)  
+        )
     }
 }
+
 
 class Pawn extends Piece {
     constructor(id, color){
         super(id, color);
-        this.name = this.color + "pawn";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}pawn.png)`;
+        this.element.setAttribute("name", `${this.color}_${this.id[0]}_pawn`);
     }
 
     canMoveForward() {
@@ -118,14 +156,7 @@ class Pawn extends Piece {
         let counter = 1;
         if (this.id[1] == 2 || this.id[1] == 7) counter = 2;
         for (let i = counter; i >= 1; i--) {
-            switch (this.color) {
-                case "white":
-                    index = i;
-                    break;        
-                case "black":
-                    index = -i;
-                    break;
-            }
+            index = this.color === 'white' ? i : -i;
             new_id = this.id[0] + (Number(this.id[1])+index);
             if (!isTileOccupied(new_id)) candidates.push(new_id);    
         } 
@@ -152,8 +183,7 @@ class Pawn extends Piece {
                         temp_id = switchId(this.id, -1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
-                }               
-                return candidates;       
+                }         
             case "black":
                 switch (this.id[0]) {
                     case "a":
@@ -171,9 +201,9 @@ class Pawn extends Piece {
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
                 }               
-                return candidates; 
                 
         }
+        return candidates;
     }
 
     getPossibleMoves() {
@@ -182,23 +212,26 @@ class Pawn extends Piece {
         candidates.push(...this.attackMove());
         return candidates;
     }
-    
-
+    /*
+    To do:
+    - promocja (element.remove(), delete Pieces["piece"] Pieces["piece"] = new Piece())
+    - en passant (po wprowadzeniu zapisu notacji)
+    */
 }
 
 class Bishop extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.name = this.color + "bishop";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}bishop.png)`;
+        this.element.setAttribute("name", `${this.color}_${this.id[0]}_bishop`);
     }    
 }
 
 class Knight extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.name = this.color + "knight";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}knight.png)`;
+        this.element.setAttribute("name", `${this.color}_${this.id[0]}_knight`);
     }
     
 }
@@ -206,8 +239,8 @@ class Knight extends Piece {
 class Rook extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.name = this.color + "rook";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}rook.png)`;
+        this.element.setAttribute("name", `${this.color}_${this.id[0]}_rook`);
     }
     
 }
@@ -215,8 +248,8 @@ class Rook extends Piece {
 class Queen extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.name = this.color + "queen";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}queen.png)`;
+        this.element.setAttribute("name", `${this.color}_queen`);
     }
     
 }
@@ -224,48 +257,19 @@ class Queen extends Piece {
 class King extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.name = this.color + "king";
-        this.element.style.backgroundImage = `url(images/${this.name}.png)`;
+        this.element.style.backgroundImage = `url(images/${this.color}king.png)`;
+        this.element.setAttribute("name", `${this.color}_king`);
+
     }
     
 }
-
-const white_f_bishop = new Bishop("f1", "white");
-const white_c_bishop = new Bishop("c1", "white");
-const white_b_knight = new Knight("b1", "white");
-const white_g_knight = new Knight("g1", "white");
-const white_a_rook = new Rook("a1", "white");
-const white_h_rook = new Rook("h1", "white");
-const white_queen = new Queen("d1", "white");
-const white_king = new King("e1", "white");
-const white_a_pawn = new Pawn("a2", "white");
-const white_b_pawn = new Pawn("b2", "white");
-const white_c_pawn = new Pawn("c2", "white");
-const white_d_pawn = new Pawn("d2", "white");
-const white_e_pawn = new Pawn("e2", "white");
-const white_f_pawn = new Pawn("f2", "white");
-const white_g_pawn = new Pawn("g2", "white");
-const white_h_pawn = new Pawn("h2", "white");
-
-const black_f_bishop = new Bishop("f8", "black");
-const black_c_bishop = new Bishop("c8", "black");
-const black_b_knight = new Knight("b8", "black");
-const black_g_knight = new Knight("g8", "black");
-const black_a_rook = new Rook("a8", "black");
-const black_h_rook = new Rook("h8", "black");
-const black_queen = new Queen("d8", "black");
-const black_king = new King("e8", "black");
-const black_a_pawn = new Pawn("a7", "black");
-const black_b_pawn = new Pawn("b7", "black");
-const black_c_pawn = new Pawn("c7", "black");
-const black_d_pawn = new Pawn("d7", "black");
-const black_e_pawn = new Pawn("e7", "black");
-const black_f_pawn = new Pawn("f7", "black");
-const black_g_pawn = new Pawn("g7", "black");
-const black_h_pawn = new Pawn("h7", "black");
+fillBoard();
 
 
 
-
+/*
+zbijana figura "zjeżdża chamsko w 2D" w portal a druga figura wchodzi na 
+jej miejsce 
+*/
 
 
