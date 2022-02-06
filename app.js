@@ -34,7 +34,7 @@ for (let i = 0; i<=7; i++) {
 
 
 let white_flag = true;
-
+let highlight_flag = false;
 for (let i = 1; i <= 64; i++) {
     const tile = document.createElement("div");
     tile.classList.add("tiles");
@@ -44,9 +44,18 @@ for (let i = 1; i <= 64; i++) {
         white_flag = !white_flag;
     }
     tile.id = calcId(i);
+    tile.addEventListener("click", function() {
+        if (highlight_flag) {
+        removeHighlights(last_moves);
+        last_moves.length = 0;            
+        }        
+        highlight_flag = !highlight_flag;
+    })
     //tile.classList.add(64-i);
     board.appendChild(tile);
 }
+
+
 
 const Pieces = {}
 function fillBoard() {
@@ -88,7 +97,7 @@ function switchId(id, value1, value2) {
     return letters[dict[id[0]] + Number(value1)-1] + (Number(id[1]) + value2);
 }
 
-// dodac podswietlanie wybranej figury - class focused
+
 function highlightTiles(moves) {
     moves.forEach(element => {
         document.getElementById(element).classList.add("highlighted");
@@ -98,39 +107,28 @@ function highlightTiles(moves) {
 function removeHighlights(moves) {
     moves.forEach(element => {
         document.getElementById(element).classList.remove("highlighted");
+        document.getElementById(element).classList.remove("focused");
     });
 }
 
-class Board {
-    constructor() {
 
-    }
-
-}
+const last_moves = [];
 
 class Piece {
     constructor(id, color) {
-        this.id = id;
         this.color = color;
-        this.initial_id = this.id;
+        this.position = id;
         this.element = document.createElement("div");
         this.element.classList.add("piece");
         this.element.setAttribute("color", this.color);
-        this.element.setAttribute("id", this.id);
-        document.getElementById(this.id).appendChild(this.element);   
-        this.element.addEventListener("click", function() {
-            if (document.getElementById(this.id).classList.contains("highlighted")) {
-                removeHighlights([this.id]);
-            }
-            else {
-                highlightTiles([this.id]);
-            }
-        })     
+        this.element.setAttribute("position", this.position);
+        document.getElementById(this.position).appendChild(this.element);       
     }
 
     movePiece(id) {
         document.getElementById(id).appendChild(this.element);
-        return this.id = id;
+        this.element.setAttribute("position", id)
+        return this.position = id;
     }
 
     canCapture(id) {     
@@ -146,19 +144,53 @@ class Pawn extends Piece {
     constructor(id, color){
         super(id, color);
         this.element.style.backgroundImage = `url(images/${this.color}pawn.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.id[0]}_pawn`);
+        this.element.setAttribute("name", `${this.color}_${this.position[0]}_pawn`);
+        this.element.addEventListener("click", function() {
+            //Uwaga szalenstwo, caly czas szkic
+            last_moves.push(this.getAttribute("position"));
+            //removeHighlights([this.getAttribute("position")]);
+            removeHighlights(last_moves);
+            highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
+            this.parentNode.classList.add("focused");            
+            /*
+            if (this.parentNode.classList.contains("focused")) {
+                removeHighlights([this.getAttribute("position")]);
+                removeHighlights(last_moves);
+            }
+            else {
+                highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
+                this.parentNode.classList.add("focused");
+            }
+            */
+        });
+        this.element.addEventListener("click", function() {
+            if (this.classList.contains("focused")){
+                console.log("OK");
+            removeHighlights(last_moves);
+            last_moves.length = 0;
+            }
+        }
+        ); 
     }
 
+    /*
+    FIX - Przerobić funkcję, żeby nie sprawdzała pola +2, jeżeli +1 jest już zajęte
+    */
     canMoveForward() {
         let candidates = [];
         let new_id;
         let index;
         let counter = 1;
-        if (this.id[1] == 2 || this.id[1] == 7) counter = 2;
-        for (let i = counter; i >= 1; i--) {
+        if (this.position[1] == 2 || this.position[1] == 7) counter = 2;
+        for (let i = 1; i <= counter; i++) {
             index = this.color === 'white' ? i : -i;
-            new_id = this.id[0] + (Number(this.id[1])+index);
-            if (!isTileOccupied(new_id)) candidates.push(new_id);    
+            new_id = this.position[0] + (Number(this.position[1])+index);
+            if (!isTileOccupied(new_id)) {
+                candidates.push(new_id);   
+            }
+            else {
+                return candidates;
+            } 
         } 
         return candidates;        
     }
@@ -168,36 +200,36 @@ class Pawn extends Piece {
         let temp_id;
         switch (this.color) {
             case "white":
-                switch (this.id[0]) {
+                switch (this.position[0]) {
                     case "a":
-                        temp_id = switchId(this.id, 1, 1);
+                        temp_id = switchId(this.position, 1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;               
                     case "h":
-                        temp_id = switchId(this.id, -1, 1);
+                        temp_id = switchId(this.position, -1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
                     default:
-                        temp_id = switchId(this.id, 1, 1);
+                        temp_id = switchId(this.position, 1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
-                        temp_id = switchId(this.id, -1, 1);
+                        temp_id = switchId(this.position, -1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
                 }         
             case "black":
-                switch (this.id[0]) {
+                switch (this.position[0]) {
                     case "a":
-                        temp_id = switchId(this.id, 1, -1);
+                        temp_id = switchId(this.position, 1, -1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;                
                     case "h":
-                        temp_id = switchId(this.id, -1, -1);
+                        temp_id = switchId(this.position, -1, -1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;                    
                     default:
-                        temp_id = switchId(this.id, 1, -1);
+                        temp_id = switchId(this.position, 1, -1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
-                        temp_id = switchId(this.id, -1, -1);
+                        temp_id = switchId(this.position, -1, -1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
                 }               
@@ -210,6 +242,7 @@ class Pawn extends Piece {
         let candidates = [];
         candidates.push(...this.canMoveForward());
         candidates.push(...this.attackMove());
+        last_moves.push(...candidates);
         return candidates;
     }
     /*
@@ -223,7 +256,7 @@ class Bishop extends Piece {
     constructor(id, color) {
         super(id, color);
         this.element.style.backgroundImage = `url(images/${this.color}bishop.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.id[0]}_bishop`);
+        this.element.setAttribute("name", `${this.color}_${this.position[0]}_bishop`);
     }    
 }
 
@@ -231,7 +264,7 @@ class Knight extends Piece {
     constructor(id, color) {
         super(id, color);
         this.element.style.backgroundImage = `url(images/${this.color}knight.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.id[0]}_knight`);
+        this.element.setAttribute("name", `${this.color}_${this.position[0]}_knight`);
     }
     
 }
@@ -240,7 +273,7 @@ class Rook extends Piece {
     constructor(id, color) {
         super(id, color);
         this.element.style.backgroundImage = `url(images/${this.color}rook.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.id[0]}_rook`);
+        this.element.setAttribute("name", `${this.color}_${this.position[0]}_rook`);
     }
     
 }
