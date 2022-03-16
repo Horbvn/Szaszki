@@ -17,6 +17,8 @@ let dict = {
     "h": 8
 }
 
+const last_moves = [];
+
 
 for (let i = 0; i<=7; i++) {
     const letter = document.createElement("li");
@@ -44,13 +46,6 @@ for (let i = 1; i <= 64; i++) {
         white_flag = !white_flag;
     }
     tile.id = calcId(i);
-    tile.addEventListener("click", function() {
-        if (highlight_flag) {
-        removeHighlights(last_moves);
-        last_moves.length = 0;            
-        }        
-        highlight_flag = !highlight_flag;
-    })
     //tile.classList.add(64-i);
     board.appendChild(tile);
 }
@@ -61,19 +56,19 @@ const Pieces = {}
 function fillBoard() {
     ['white','black'].forEach(color => {
         letters.forEach(letter => {
-            Pieces[`${color}_${letter}_pawn`] = new Pawn(`${letter}${color ==='white' ? '2' : '7'}`, `${color}`);
+            Pieces[`${color}_${letter}_Pawn`] = new Pawn(`${letter}${color ==='white' ? '2' : '7'}`, `${color}`);
         });
         ['a','h'].forEach(letter => {
-            Pieces[`${color}_${letter}_rook`] = new Rook(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+            Pieces[`${color}_${letter}_Rook`] = new Rook(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
         });
         ['b','g'].forEach(letter => {
-            Pieces[`${color}_${letter}_knight`] = new Knight(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+            Pieces[`${color}_${letter}_Knight`] = new Knight(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
         });
         ['c','f'].forEach(letter => {
-            Pieces[`${color}_${letter}_bishop`] = new Bishop(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
+            Pieces[`${color}_${letter}_Bishop`] = new Bishop(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
         });
-        Pieces[`${color}_king`] = new King(`e${color ==='white' ? '1' : '8'}`, `${color}`);
-        Pieces[`${color}_queen`] = new Queen(`d${color ==='white' ? '1' : '8'}`, `${color}`);
+        Pieces[`${color}_King`] = new King(`e${color ==='white' ? '1' : '8'}`, `${color}`);
+        Pieces[`${color}_Queen`] = new Queen(`d${color ==='white' ? '1' : '8'}`, `${color}`);
     });
     
 }
@@ -94,7 +89,13 @@ function isTileOccupied(id) {
 
 
 function switchId(id, value1, value2) {
-    return letters[dict[id[0]] + Number(value1)-1] + (Number(id[1]) + value2);
+    let new_column = dict[id[0]] + Number(value1)-1;
+    let new_row = (Number(id[1]) + value2);
+    if (new_column < 1 || new_row < 1){
+        return null;
+    }
+    else return letters[new_column]+ new_row;
+
 }
 
 
@@ -112,7 +113,7 @@ function removeHighlights(moves) {
 }
 
 
-const last_moves = [];
+
 
 class Piece {
     constructor(id, color) {
@@ -122,7 +123,9 @@ class Piece {
         this.element.classList.add("piece");
         this.element.setAttribute("color", this.color);
         this.element.setAttribute("position", this.position);
-        document.getElementById(this.position).appendChild(this.element);       
+        document.getElementById(this.position).appendChild(this.element);     
+        this.element.style.backgroundImage = `url(images/${this.color}${this.constructor.name}.png)`;
+        this.element.setAttribute("name", `${this.color}_${this.position[0]}_${this.constructor.name}`);
     }
 
     movePiece(id) {
@@ -143,36 +146,19 @@ class Piece {
 class Pawn extends Piece {
     constructor(id, color){
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}pawn.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.position[0]}_pawn`);
         this.element.addEventListener("click", function() {
-            //Uwaga szalenstwo, caly czas szkic
-            last_moves.push(this.getAttribute("position"));
-            //removeHighlights([this.getAttribute("position")]);
-            removeHighlights(last_moves);
-            highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
-            this.parentNode.classList.add("focused");            
-            /*
-            if (this.parentNode.classList.contains("focused")) {
-                removeHighlights([this.getAttribute("position")]);
-                removeHighlights(last_moves);
-            }
-            else {
+            if (last_moves.length === 0) {
+                last_moves.push(this.getAttribute("position"));
                 highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
                 this.parentNode.classList.add("focused");
             }
-            */
-        });
-        this.element.addEventListener("click", function() {
-            if (this.classList.contains("focused")){
-                console.log("OK");
-            removeHighlights(last_moves);
-            last_moves.length = 0;
+            else {
+                removeHighlights(last_moves);
+                last_moves.length = 0;
             }
-        }
-        ); 
-    }
 
+        });
+    }
     /*
     FIX - Przerobić funkcję, żeby nie sprawdzała pola +2, jeżeli +1 jest już zajęte
     */
@@ -195,11 +181,13 @@ class Pawn extends Piece {
         return candidates;        
     }
 
+    /*
+    FIX - Przerobić IFa -> white: y = 1, black: y = -1
+    */
     attackMove() {
         let candidates = []
         let temp_id;
-        switch (this.color) {
-            case "white":
+        if (this.color === "white") {
                 switch (this.position[0]) {
                     case "a":
                         temp_id = switchId(this.position, 1, 1);
@@ -215,8 +203,9 @@ class Pawn extends Piece {
                         temp_id = switchId(this.position, -1, 1);
                         if (this.canCapture(temp_id)) candidates.push(temp_id);
                         break;
-                }         
-            case "black":
+                }
+            }         
+            else {
                 switch (this.position[0]) {
                     case "a":
                         temp_id = switchId(this.position, 1, -1);
@@ -255,16 +244,26 @@ class Pawn extends Piece {
 class Bishop extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}bishop.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.position[0]}_bishop`);
+
     }    
 }
 
 class Knight extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}knight.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.position[0]}_knight`);
+    }
+
+    getPossibleMoves() {
+        let candidates = [];
+        for (let x = -2; x < 3; x++) {
+            if (x ===0) continue;
+            let y = 3-Math.abs(x);
+            candidates.push(switchId(this.position, x, y));
+            y *= -1;
+            candidates.push(switchId(this.position, x, y));
+            
+        }
+        return candidates;
     }
     
 }
@@ -272,8 +271,6 @@ class Knight extends Piece {
 class Rook extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}rook.png)`;
-        this.element.setAttribute("name", `${this.color}_${this.position[0]}_rook`);
     }
     
 }
@@ -281,8 +278,6 @@ class Rook extends Piece {
 class Queen extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}queen.png)`;
-        this.element.setAttribute("name", `${this.color}_queen`);
     }
     
 }
@@ -290,8 +285,6 @@ class Queen extends Piece {
 class King extends Piece {
     constructor(id, color) {
         super(id, color);
-        this.element.style.backgroundImage = `url(images/${this.color}king.png)`;
-        this.element.setAttribute("name", `${this.color}_king`);
 
     }
     

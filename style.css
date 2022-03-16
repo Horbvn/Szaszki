@@ -91,11 +91,11 @@ body {
 .highlighted {
 border-radius: 3%;
 box-shadow:     
-inset 0px 0px 8px 5px #e3998c;
+inset 0px 0px 8px 5px #6b88e8;
 }
 
 .focused {
 border-radius: 3%;
 box-shadow:     
-inset 0px 0px 8px 5px #e0d55c; 
+inset 0px 0px 8px 3px #e0d55c; 
 }
