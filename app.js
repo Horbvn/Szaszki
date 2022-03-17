@@ -91,13 +91,12 @@ function isTileOccupied(id) {
 function switchId(id, value1, value2) {
     let new_column = dict[id[0]] + Number(value1)-1;
     let new_row = (Number(id[1]) + value2);
-    if (new_column < 1 || new_row < 1){
+    if (new_column < 0 || new_column > 7 || new_row > 8 || new_row < 1){
         return null;
     }
-    else return letters[new_column]+ new_row;
+    else return letters[new_column] + new_row;
 
 }
-
 
 function highlightTiles(moves) {
     moves.forEach(element => {
@@ -113,8 +112,6 @@ function removeHighlights(moves) {
 }
 
 
-
-
 class Piece {
     constructor(id, color) {
         this.color = color;
@@ -126,6 +123,18 @@ class Piece {
         document.getElementById(this.position).appendChild(this.element);     
         this.element.style.backgroundImage = `url(images/${this.color}${this.constructor.name}.png)`;
         this.element.setAttribute("name", `${this.color}_${this.position[0]}_${this.constructor.name}`);
+        this.element.addEventListener("click", function() {
+            if (last_moves.length === 0) {
+                last_moves.push(this.getAttribute("position"));
+                highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
+                this.parentNode.classList.add("focused");
+            }
+            else {
+                removeHighlights(last_moves);
+                last_moves.length = 0;
+            }
+
+        });
     }
 
     movePiece(id) {
@@ -146,18 +155,7 @@ class Piece {
 class Pawn extends Piece {
     constructor(id, color){
         super(id, color);
-        this.element.addEventListener("click", function() {
-            if (last_moves.length === 0) {
-                last_moves.push(this.getAttribute("position"));
-                highlightTiles(Pieces[this.getAttribute("name")].getPossibleMoves());
-                this.parentNode.classList.add("focused");
-            }
-            else {
-                removeHighlights(last_moves);
-                last_moves.length = 0;
-            }
-
-        });
+        
     }
     /*
     FIX - Przerobić funkcję, żeby nie sprawdzała pola +2, jeżeli +1 jest już zajęte
@@ -256,13 +254,19 @@ class Knight extends Piece {
     getPossibleMoves() {
         let candidates = [];
         for (let x = -2; x < 3; x++) {
-            if (x ===0) continue;
+            if (x === 0) continue;
             let y = 3-Math.abs(x);
             candidates.push(switchId(this.position, x, y));
             y *= -1;
             candidates.push(switchId(this.position, x, y));
-            
         }
+        candidates = candidates.filter(move => typeof(move) === "string");
+        candidates.forEach(move => {
+            if (isTileOccupied(move)) {
+                if (!this.canCapture(move)) candidates.splice(candidates.indexOf(move), 1);
+            }
+        });
+        last_moves.push(...candidates);
         return candidates;
     }
     
