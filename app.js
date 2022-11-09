@@ -67,8 +67,8 @@ function fillBoard() {
         ['c','f'].forEach(letter => {
             Pieces[`${color}_${letter}_Bishop`] = new Bishop(`${letter}${color ==='white' ? '1' : '8'}`, `${color}`);
         });
-        Pieces[`${color}_King`] = new King(`e${color ==='white' ? '1' : '8'}`, `${color}`);
-        Pieces[`${color}_Queen`] = new Queen(`d${color ==='white' ? '1' : '8'}`, `${color}`);
+        Pieces[`${color}_e_King`] = new King(`e${color ==='white' ? '1' : '8'}`, `${color}`);
+        Pieces[`${color}_d_Queen`] = new Queen(`d${color ==='white' ? '1' : '8'}`, `${color}`);
     });
     
 }
@@ -88,15 +88,15 @@ function isTileOccupied(id) {
 }
 
 
-function switchId(id, value1, value2) {
+function calcNewId(id, value1, value2) {
     let new_column = dict[id[0]] + Number(value1)-1;
     let new_row = (Number(id[1]) + value2);
     if (new_column < 0 || new_column > 7 || new_row > 8 || new_row < 1){
         return null;
     }
     else return letters[new_column] + new_row;
-
 }
+
 
 function highlightTiles(moves) {
     moves.forEach(element => {
@@ -143,23 +143,55 @@ class Piece {
         return this.position = id;
     }
 
-    canCapture(id) {     
+    canCapture(id, color) {     
         return (
             isTileOccupied(id)
-            && (document.getElementById(id).childNodes[0].getAttribute("color") != this.color)  
+            && (document.getElementById(id).childNodes[0].getAttribute("color") != color)  
         )
+    }
+
+
+    checkDirections(array) {
+        // const directions = [[1,1], [1,-1], [-1,-1], [-1,1]];
+        let moves = [];
+        array.forEach(direction => {
+            moves.push(...this.checkDirection(direction, this.color, this.position));
+        });
+        return moves;
+    }
+    
+    
+    checkDirection(array, color,id) {
+        let moves = [];
+        let loop_flag = true;
+        while (loop_flag) {
+            let new_id = calcNewId(id, array[0], array[1]);
+            if (new_id === null) {
+                return moves;
+            }
+            if (isTileOccupied(new_id)) {
+                if (this.canCapture(new_id, color)){
+                    moves.push(new_id);
+                }
+                loop_flag = false;
+            }
+            else {
+                moves.push(new_id);
+                id = new_id;
+            }
+    
+        }
+        return moves;
     }
 }
 
 
 class Pawn extends Piece {
     constructor(id, color){
-        super(id, color);
-        
+        super(id, color);        
     }
-    /*
-    FIX - Przerobić funkcję, żeby nie sprawdzała pola +2, jeżeli +1 jest już zajęte
-    */
+
+
     canMoveForward() {
         let candidates = [];
         let new_id;
@@ -188,36 +220,36 @@ class Pawn extends Piece {
         if (this.color === "white") {
                 switch (this.position[0]) {
                     case "a":
-                        temp_id = switchId(this.position, 1, 1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, 1, 1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
                         break;               
                     case "h":
-                        temp_id = switchId(this.position, -1, 1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, -1, 1);
+                        if (this.canCapture(temp_id,this.color)) candidates.push(temp_id);
                         break;
                     default:
-                        temp_id = switchId(this.position, 1, 1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
-                        temp_id = switchId(this.position, -1, 1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, 1, 1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, -1, 1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
                         break;
                 }
             }         
             else {
                 switch (this.position[0]) {
                     case "a":
-                        temp_id = switchId(this.position, 1, -1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, 1, -1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
                         break;                
                     case "h":
-                        temp_id = switchId(this.position, -1, -1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, -1, -1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
                         break;                    
                     default:
-                        temp_id = switchId(this.position, 1, -1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
-                        temp_id = switchId(this.position, -1, -1);
-                        if (this.canCapture(temp_id)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, 1, -1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
+                        temp_id = calcNewId(this.position, -1, -1);
+                        if (this.canCapture(temp_id, this.color)) candidates.push(temp_id);
                         break;
                 }               
                 
@@ -242,8 +274,15 @@ class Pawn extends Piece {
 class Bishop extends Piece {
     constructor(id, color) {
         super(id, color);
-
+        this.directions = [[1,1], [1,-1], [-1,-1], [-1,1]];
     }    
+
+    getPossibleMoves() {
+        let candidates = [];
+        candidates.push(...this.checkDirections(this.directions));
+        last_moves.push(...candidates);
+        return candidates;
+    }
 }
 
 class Knight extends Piece {
@@ -253,19 +292,21 @@ class Knight extends Piece {
 
     getPossibleMoves() {
         let candidates = [];
+        let illegal_moves = [];
         for (let x = -2; x < 3; x++) {
             if (x === 0) continue;
             let y = 3-Math.abs(x);
-            candidates.push(switchId(this.position, x, y));
+            candidates.push(calcNewId(this.position, x, y));
             y *= -1;
-            candidates.push(switchId(this.position, x, y));
+            candidates.push(calcNewId(this.position, x, y));
         }
         candidates = candidates.filter(move => typeof(move) === "string");
         candidates.forEach(move => {
             if (isTileOccupied(move)) {
-                if (!this.canCapture(move)) candidates.splice(candidates.indexOf(move), 1);
+                if (!this.canCapture(move, this.color)) illegal_moves.push(move);
             }
         });
+        candidates = candidates.filter(move => !illegal_moves.includes(move));
         last_moves.push(...candidates);
         return candidates;
     }
@@ -275,6 +316,13 @@ class Knight extends Piece {
 class Rook extends Piece {
     constructor(id, color) {
         super(id, color);
+        this.directions = [[1,0], [-1,0], [0,1], [0,-1]];
+    }
+    getPossibleMoves() {
+        let candidates = [];
+        candidates.push(...this.checkDirections(this.directions));
+        last_moves.push(...candidates);
+        return candidates;
     }
     
 }
@@ -282,6 +330,13 @@ class Rook extends Piece {
 class Queen extends Piece {
     constructor(id, color) {
         super(id, color);
+        this.directions = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,-1], [-1,1]];
+    }
+    getPossibleMoves() {
+        let candidates = [];
+        candidates.push(...this.checkDirections(this.directions));
+        last_moves.push(...candidates);
+        return candidates;
     }
     
 }
@@ -289,7 +344,6 @@ class Queen extends Piece {
 class King extends Piece {
     constructor(id, color) {
         super(id, color);
-
     }
     
 }
@@ -301,5 +355,11 @@ fillBoard();
 zbijana figura "zjeżdża chamsko w 2D" w portal a druga figura wchodzi na 
 jej miejsce 
 */
+
+
+
+
+
+
 
 
