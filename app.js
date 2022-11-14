@@ -169,7 +169,7 @@ class Piece {
             if (new_id === null) {
                 return moves;
             }
-            if (isTileOccupied(new_id)) {
+            if (isTileOccupied(new_id)) { 
                 if (this.canCapture(new_id, color)){
                     moves.push(new_id);
                 }
@@ -344,6 +344,25 @@ class Queen extends Piece {
 class King extends Piece {
     constructor(id, color) {
         super(id, color);
+    }
+    getPossibleMoves() {
+        let candidates = [];
+        for (let i = 1; i>=-1; i--) {            
+            for (let j = 1; j>=-1; j--) {
+                let new_id = calcNewId(this.position, i, j);
+                if (new_id === null || new_id === this.position) continue;
+                if (isTileOccupied(new_id)) { 
+                    if (this.canCapture(new_id, this.color)){
+                        candidates.push(new_id);
+                    }
+                }
+                else {
+                    candidates.push(new_id);    
+                }
+            }
+        }
+        last_moves.push(...candidates);
+        return candidates;
     }
     
 }
